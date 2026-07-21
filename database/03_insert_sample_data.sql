@@ -104,3 +104,127 @@ VALUES(
 'Peanuts'
 
 );
+
+Insert into Doctors
+VALUES
+('Derek', 'Shepherd', 4, 'dshepherd@hospital.ca', '6134556789'),
+('Meredith', 'Grey', 5, 'mgrey@hospital.ca', '6134558989');
+
+
+INSERT INTO Patients (
+
+FirstName,
+
+LastName,
+
+DateOfBirth,
+
+Sex,
+
+Phone,
+
+Email,
+
+Address,
+
+HealthCardNumber,
+
+EmergencyContact,
+
+EmergencyPhone,
+
+FamilyDoctor,
+
+BloodType,
+
+Allergies
+
+)
+
+VALUES(
+
+'Rachel',
+
+'Green',
+
+'1972-06-11',
+
+'Female',
+
+'6135455888',
+
+'rachelg@email.com',
+
+'13 Smith Street',
+
+'HC88888887',
+
+'Karen Green',
+
+'6139997987',
+
+'Dr. Amos Smith',
+
+'A-',
+
+'N/A'
+
+),
+(
+
+'Monica',
+
+'Geller',
+
+'1972-08-13',
+
+'Female',
+
+'6133576888',
+
+'monicag@email.com',
+
+'12 Forest Street',
+
+'HC12345666',
+
+'Ross Geller',
+
+'6138887987',
+
+'Dr. Theodore Lee',
+
+'O-',
+
+'Eggs'
+
+),
+(
+
+'Conrad',
+
+'Fisher',
+
+'2001-09-11',
+
+'Male',
+
+'6135437888',
+
+'connie@email.com',
+
+'2 Summer Street',
+
+'HC89988887',
+
+'Jeremiah Fisher',
+
+'6139997987',
+
+'Dr. Derek Shepherd',
+
+'A-',
+
+'N/A'
+
+)
