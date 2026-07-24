@@ -3,9 +3,9 @@
 #first goal: retrieve every patient:
 
 #uses the SQL connection we've built in db.py
-from database.db import get_connection
+from src.database.db import get_connection
 #uses patient class from patient.py file
-from models.patient import Patient
+from src.models.patient import Patient
 
 def row_to_patient(row):
 
@@ -113,3 +113,88 @@ def search_by_health_card(health_card_number):
         return None
 
     return row_to_patient(row)
+
+
+def add_patient(patient_data):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+#pass a dictionary, easier to maintain
+    cursor.execute("""
+    
+        INSERT INTO Patients
+        (
+            FirstName,
+            LastName,
+            DateOfBirth,
+            Sex,
+            Phone,
+            Email,
+            Address,
+            HealthCardNumber,
+            EmergencyContact,
+            EmergencyPhone,
+            FamilyDoctor,
+            BloodType,
+            Allergies    
+            )
+
+            VALUES
+            (?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?      
+            )
+    
+    
+    """, 
+    patient_data["first_name"],
+    patient_data["last_name"],
+    patient_data["date_of_birth"],
+    patient_data["sex"],
+    patient_data["phone"],
+    patient_data["email"],
+    patient_data["address"],
+    patient_data["health_card_number"],
+    patient_data["emergency_contact"],
+    patient_data["emergency_phone"],
+    patient_data["family_doctor"],
+    patient_data["blood_type"],
+    patient_data["allergies"]
+    )
+
+    connection.commit()
+    connection.close()
+
+
+def get_patient_appointments(patient_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+    
+        SELECT
+            AppointmentDate, 
+            AppointmentTime,
+            AppointmentReason,
+            AppointmentStatus,
+            RoomNumber
+        FROM Appointments
+        WHERE PatientID = ?
+        ORDER BY AppointmentDate
+    
+    """, patient_id)
+
+    appointments = cursor.fetchall()
+
+    connection.close()
+    return appointments
