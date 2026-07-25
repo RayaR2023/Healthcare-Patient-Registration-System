@@ -7,6 +7,7 @@ from src.database.db import get_connection
 #uses patient class from patient.py file
 from src.models.patient import Patient
 from src.models.referral import Referral
+from src.models.lab_result import LabResult
 
 def row_to_patient(row):
 
@@ -238,3 +239,42 @@ def get_patient_referrals(patient_id):
         )
     connection.close()
     return referrals
+
+
+def get_patient_lab_results(patient_id):
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+        LabResultID,
+        PatientID,
+        TestName,
+        TestDate,
+        Result,
+        Notes
+        FROM LabResults
+        WHERE PatientID = ?
+        ORDER BY TestDate DESC
+        """,
+        patient_id
+    )
+
+    results = []
+
+    for row in cursor.fetchall():
+        results.append(
+            LabResult(
+                row.LabResultID,
+                row.PatientID,
+                row.TestName,
+                row.TestDate,
+                row.Result,
+                row.Notes
+            )
+        )
+
+    connection.close()
+    return results

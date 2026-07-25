@@ -6,7 +6,10 @@ from src.services.patient_service import search_by_health_card
 from src.gui.appointments_frame import AppointmentsFrame
 from src.services.patient_service import get_patient_appointments
 from src.gui.sidebar import Sidebar
-
+from src.gui.referrals_frame import ReferralsFrame
+from src.services.patient_service import get_patient_referrals
+from src.gui.lab_results_frame import LabResultsFrame
+from src.services.patient_service import get_patient_lab_results
 
 class MainWindow(ctk.CTk):
     def __init__(self):
@@ -121,21 +124,27 @@ class MainWindow(ctk.CTk):
             pady = 10
         )
 
-        referrals_label = ctk.CTkLabel(
-            self.tabs.tab("Referrals"),
-            text = "Referral module coming soon",
-            font = ("Segoe UI", 16)
+        self.referrals = ReferralsFrame(
+            self.tabs.tab("Referrals")
         )
 
-        referrals_label.pack(pady = 40)
-
-        lab_label = ctk.CTkLabel(
-            self.tabs.tab("Lab Results"),
-            text = "Labs module coming soon",
-            font = ("Segoe UI", 16)
+        self.referrals.pack(
+            fill = "both",
+            expand = True,
+            padx =10,
+            pady = 10
         )
 
-        lab_label.pack(pady = 40)
+        self.lab_results = LabResultsFrame(
+            self.tabs.tab("Lab Results")
+        )
+
+        self.lab_results.pack(
+            fill = "both",
+            expand = True,
+            padx =10,
+            pady = 10
+        )
 
         documents_label = ctk.CTkLabel(
             self.tabs.tab("Documents"),
@@ -161,4 +170,19 @@ class MainWindow(ctk.CTk):
         )
         self.appointments.display_appointments(
             appointments
+        )
+
+        referrals = get_patient_referrals(
+            patient.patient_id
+        )
+
+        self.referrals.display_referrals(
+            referrals
+        )
+
+        lab_results = get_patient_lab_results(
+            patient.patient_id
+        )
+        self.lab_results.display_lab_results(
+            lab_results
         )
