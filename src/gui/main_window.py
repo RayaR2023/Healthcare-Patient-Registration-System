@@ -10,6 +10,8 @@ from src.gui.referrals_frame import ReferralsFrame
 from src.services.patient_service import get_patient_referrals
 from src.gui.lab_results_frame import LabResultsFrame
 from src.services.patient_service import get_patient_lab_results
+from src.services.patient_service import get_patient_documents
+from src.gui.documents_frame import DocumentsFrame
 
 class MainWindow(ctk.CTk):
     def __init__(self):
@@ -146,13 +148,16 @@ class MainWindow(ctk.CTk):
             pady = 10
         )
 
-        documents_label = ctk.CTkLabel(
-            self.tabs.tab("Documents"),
-            text = "Documents module coming soon",
-            font = ("Segoe UI", 16)
+        self.documents = DocumentsFrame(
+            self.tabs.tab("Documents")
         )
 
-        documents_label.pack(pady = 40)
+        self.documents.pack(
+            fill = "both",
+            expand = True,
+            padx = 10,
+            pady = 10
+        )
         
     def search_patient(self, health_card):
         patient = search_by_health_card(health_card)
@@ -185,4 +190,11 @@ class MainWindow(ctk.CTk):
         )
         self.lab_results.display_lab_results(
             lab_results
+        )
+
+        documents = get_patient_documents(
+            patient.patient_id
+        )
+        self.documents.display_documents(
+            documents
         )

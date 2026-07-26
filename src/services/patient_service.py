@@ -8,7 +8,7 @@ from src.database.db import get_connection
 from src.models.patient import Patient
 from src.models.referral import Referral
 from src.models.lab_result import LabResult
-
+from src.models.document import Document
 def row_to_patient(row):
 
     return Patient(
@@ -278,3 +278,41 @@ def get_patient_lab_results(patient_id):
 
     connection.close()
     return results
+
+
+def get_patient_documents(patient_id):
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT 
+            DocumentID,
+            PatientID,
+            DocumentType,
+            FileName,
+            UploadedBy,
+            UploadDate
+        FROM Documents
+        WHERE PatientID = ?
+        ORDER BY UploadDate DESC
+
+        """,
+        patient_id
+    )
+
+    documents = []
+    for row in cursor.fetchall():
+        documents.append(
+            Document(
+                row.DocumentID,
+                row.PatientID,
+                row.DocumentType,
+                row.FileName,
+                row.UploadedBy,
+                row.UploadDate
+            )
+        )
+    connection.close()
+    return documents

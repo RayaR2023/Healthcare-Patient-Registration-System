@@ -4,7 +4,9 @@ class PatientInfoFrame(ctk.CTkFrame):
     def __init__(self, parent):
 
         super().__init__(parent)
+        self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=0)
         self.grid_columnconfigure(3, weight=1)
 
         self.patient_labels = {}
@@ -24,96 +26,128 @@ class PatientInfoFrame(ctk.CTkFrame):
             pady=(20, 30)
         )
 
-        field_pairs = [
+        left_fields = [
 
-            ("Patient ID", "Phone"),
+            ("Patient ID","Patient ID"),
 
-            ("First Name", "Email"),
+            ("Name","Name"),
 
-            ("Last Name", "Address"),
+            ("Date of Birth","Date of Birth"),
 
-            ("Date of Birth", "Health Card"),
+            ("Sex","Sex"),
 
-            ("Sex", "Blood Type"),
+            ("Blood Type","Blood Type"),
 
-            ("Emergency Contact", "Family Doctor"),
-
-            ("Emergency Phone", "Allergies")
+            ("Family Doctor","Family Doctor")
 
         ]
 
-        for row, (left_field, right_field) in enumerate(field_pairs):
+        right_fields = [
 
-            left_label = ctk.CTkLabel(
+            ("Phone","Phone"),
+
+            ("Email","Email"),
+
+            ("Address","Address"),
+
+            ("Health Card","Health Card"),
+
+            ("Emergency Contact","Emergency Contact"),
+
+            ("Emergency Phone","Emergency Phone"),
+
+            ("Allergies","Allergies")
+
+        ]
+
+        for row, (display_text, key) in enumerate(left_fields):
+
+            label = ctk.CTkLabel(
 
                 self,
-
-                text=left_field + ":",
-
-                font=("Segoe UI", 14, "bold")
+                text= display_text + ":",
+                font=("Segoe UI", 14, "bold"),
+                anchor = "w"
 
             )
 
-            left_label.grid(
+            label.grid(
 
                 row=row + 1,
 
                 column=0,
 
-                padx=(30,10),
+                sticky = "w",
 
-                pady=10,
+                padx =(40,15),
 
-                sticky="w"
+                pady = 10
 
             )
 
-            left_value = ctk.CTkLabel(
+            value = ctk.CTkLabel(
 
                 self,
 
                 text="",
 
-                font=("Segoe UI", 14)
+                font=("Segoe UI", 14),
+
+                anchor = "w"
 
             )
 
-            left_value.grid(
+            value.grid(
 
                 row=row + 1,
 
                 column=1,
 
-                sticky="w"
+                sticky="w",
+
+                padx = (0,40),
+
+                pady = 10
 
             )
 
-            self.patient_labels[left_field] = left_value
+            self.patient_labels[key] = value
 
-            right_label = ctk.CTkLabel(
-                self,
-                text = right_field + ":",
-                font = ("Segoe UI", 14, "bold")
-            )
+            #----Right Side-------------
 
-            right_label.grid(
-                row = row +1,
-                column = 2,
-                padx = (50,10),
-                pady = 10,
-                sticky = "w"
-            )
-            right_value = ctk.CTkLabel(
-                self,
-                text = "",
-                font = ("Segoe UI", 14)
-            )
-            right_value.grid(
-                row = row+1,
-                column = 3,
-                sticky = "w"
-            )
-            self.patient_labels[right_field] = right_value
+            for row, (display_text, key) in enumerate(right_fields):
+
+                label = ctk.CTkLabel(
+                    self,
+                    text=display_text + ":",
+                    font=("Segoe UI", 14, "bold"),
+                    anchor="w"
+                )
+
+                label.grid(
+                    row=row + 1,
+                    column=2,
+                    sticky="w",
+                    padx=(40, 15),
+                    pady=10
+                )
+
+                value = ctk.CTkLabel(
+                    self,
+                    text="",
+                    font=("Segoe UI", 14),
+                    anchor="w"
+                )
+
+                value.grid(
+                    row=row + 1,
+                    column=3,
+                    sticky="w",
+                    padx=(0, 40),
+                    pady=10
+                )
+
+                self.patient_labels[key] = value
 
         
 
@@ -124,12 +158,8 @@ class PatientInfoFrame(ctk.CTkFrame):
             text = patient.patient_id
         )
 
-        self.patient_labels["First Name"].configure(
-            text=patient.first_name
-        )
-
-        self.patient_labels["Last Name"].configure(
-            text=patient.last_name
+        self.patient_labels["Name"].configure(
+            text=f"{patient.first_name} {patient.last_name}"
         )
 
         self.patient_labels["Date of Birth"].configure(
@@ -138,6 +168,14 @@ class PatientInfoFrame(ctk.CTkFrame):
 
         self.patient_labels["Sex"].configure(
             text=patient.sex
+        )
+
+        self.patient_labels["Blood Type"].configure(
+            text=patient.blood_type
+        )
+
+        self.patient_labels["Family Doctor"].configure(
+            text=patient.family_doctor
         )
 
         self.patient_labels["Phone"].configure(
@@ -162,14 +200,6 @@ class PatientInfoFrame(ctk.CTkFrame):
 
         self.patient_labels["Emergency Phone"].configure(
             text=patient.emergency_phone
-        )
-
-        self.patient_labels["Family Doctor"].configure(
-            text=patient.family_doctor
-        )
-
-        self.patient_labels["Blood Type"].configure(
-            text=patient.blood_type
         )
 
         self.patient_labels["Allergies"].configure(
