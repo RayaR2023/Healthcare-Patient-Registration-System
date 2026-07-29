@@ -30,7 +30,8 @@ class PatientSearchFrame(ctk.CTkFrame):
         self.entry.grid(
             row =0,
             column = 1,
-            padx = 10
+            padx = 10,
+            pady =10
         )
         self.button = ctk.CTkButton(
             self,
@@ -40,14 +41,18 @@ class PatientSearchFrame(ctk.CTkFrame):
         self.button.grid(
             row = 0,
             column =2,
-            padx = 10
+            padx = 10,
+            pady = 10
         )
 
     def search(self):
         health_card = self.entry.get().strip()
 
-        if health_card:
-            self.search_function(
-                health_card
-            )
-        
+        if health_card == "":
+            return
+
+        self.search_function(
+            health_card
+        )
+
+    

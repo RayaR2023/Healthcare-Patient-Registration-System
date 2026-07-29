@@ -1,77 +1,91 @@
 import customtkinter as ctk
+
+
 class AppointmentsFrame(ctk.CTkFrame):
 
-    def __init__(self,parent):
+    def __init__(self, parent):
+
         super().__init__(parent)
+
+        self.pack_propagate(False)
+
+        self.configure(
+            height=300
+        )
 
 
         title = ctk.CTkLabel(
-            self, 
-            text = "Appointments",
-            font = ("Segoe UI", 18, "bold")
+            self,
+            text="Appointments",
+            font=("Segoe UI",18,"bold")
         )
+
         title.pack(
-            anchor = "w",
-            padx = 20,
-            pady = (15,10)
+            anchor="w",
+            padx=20,
+            pady=(15,10)
         )
+
+
         self.table = ctk.CTkTextbox(
             self,
-            width = 900,
-            height = 180
+            height=220,
+            font=("Consolas",13)
         )
 
         self.table.pack(
-            padx = 20,
-            pady = (0,20),
-            fill = "x"
+            fill="both",
+            expand=True,
+            padx=20,
+            pady=(0,20)
         )
 
 
+
     def display_appointments(self, appointments):
+
+        self.table.configure(
+            state="normal"
+        )
+
         self.table.delete(
             "1.0",
             "end"
         )
 
-        header = (
-            f"{'Date':<14}"
-            f"{'Time':<10}"
-            f"{'Status':<15}"
-            f"{'Room':<10}"
-            f"Reason\n"
-        )
 
-        self.table.insert(
-            "end",
-            header
-        )
+        if not appointments:
 
-        self.table.insert(
-            "end",
-            "-" * 90 + "\n"
-        )
+            self.table.insert(
+                "end",
+                "No appointments found."
+            )
 
-        for appt in appointments:
+        else:
 
-            line = (
-
-
-                f"{str(appt.AppointmentDate):<14}"
-
-                f"{str(appt.AppointmentTime):<10}"
-
-                f"{appt.AppointmentStatus:<15}"
-
-                f"{appt.RoomNumber:<10}"
-
-                f"{appt.AppointmentReason}"
-
-                "\n"
-                
+            self.table.insert(
+                "end",
+                "Date            Time        Reason                         Status        Room\n"
             )
 
             self.table.insert(
                 "end",
-                line
+                "-"*100 + "\n"
             )
+
+
+            for appt in appointments:
+
+                self.table.insert(
+                    "end",
+                    f"{appt[0]}    "
+                    f"{appt[1]}    "
+                    f"{appt[2]}    "
+                    f"{appt[3]}    "
+                    f"{appt[4]}\n"
+                )
+
+
+        self.table.configure(
+            state="disabled"
+        )

@@ -4,7 +4,6 @@ class Patient:
 
     def __init__(
             self,
-            patient_id,
             first_name, 
             last_name, 
             date_of_birth,
@@ -17,8 +16,8 @@ class Patient:
             emergency_phone,
             family_doctor,
             blood_type,
-            allergies
-
+            allergies,
+            patient_id = None
     ):
 
         self.patient_id = patient_id
@@ -38,3 +37,4 @@ class Patient:
 
     def __str__(self):
         return f"{self.patient_id} - {self.first_name} {self.last_name}"
+    

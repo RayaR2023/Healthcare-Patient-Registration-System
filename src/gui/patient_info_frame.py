@@ -1,13 +1,19 @@
 import customtkinter as ctk
 
 class PatientInfoFrame(ctk.CTkFrame):
-    def __init__(self, parent):
+    def __init__(self, parent, edit_callback = None):
 
         super().__init__(parent)
-        self.grid_columnconfigure(0, weight=0)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=0)
-        self.grid_columnconfigure(3, weight=1)
+        self.configure(
+            height = 360
+        )
+        self.grid_propagate(False)
+        self.edit_callback = edit_callback
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=2)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_columnconfigure(3, weight=2)
+
 
         self.patient_labels = {}
 
@@ -22,8 +28,8 @@ class PatientInfoFrame(ctk.CTkFrame):
         title.grid(
             row=0,
             column=0,
-            columnspan=2,
-            pady=(20, 30)
+            columnspan=4,
+            pady=(10,10)
         )
 
         left_fields = [
@@ -81,7 +87,7 @@ class PatientInfoFrame(ctk.CTkFrame):
 
                 padx =(40,15),
 
-                pady = 10
+                pady = 3
 
             )
 
@@ -107,7 +113,7 @@ class PatientInfoFrame(ctk.CTkFrame):
 
                 padx = (0,40),
 
-                pady = 10
+                pady = 3
 
             )
 
@@ -115,39 +121,50 @@ class PatientInfoFrame(ctk.CTkFrame):
 
             #----Right Side-------------
 
-            for row, (display_text, key) in enumerate(right_fields):
+        for row, (display_text, key) in enumerate(right_fields):
 
-                label = ctk.CTkLabel(
-                    self,
-                    text=display_text + ":",
-                    font=("Segoe UI", 14, "bold"),
-                    anchor="w"
-                )
+            label = ctk.CTkLabel(
+                self,
+                text=display_text + ":",
+                font=("Segoe UI", 14, "bold"),
+                anchor="w"
+            )
 
-                label.grid(
-                    row=row + 1,
-                    column=2,
-                    sticky="w",
-                    padx=(40, 15),
-                    pady=10
-                )
+            label.grid(
+                row=row + 1,
+                column=2,
+                sticky="w",
+                padx=(40, 15),
+                pady=3
+            )
 
-                value = ctk.CTkLabel(
-                    self,
-                    text="",
-                    font=("Segoe UI", 14),
-                    anchor="w"
-                )
+            value = ctk.CTkLabel(
+                self,
+                text="",
+                font=("Segoe UI", 14),
+                anchor="w"
+            )
 
-                value.grid(
-                    row=row + 1,
-                    column=3,
-                    sticky="w",
-                    padx=(0, 40),
-                    pady=10
-                )
+            value.grid(
+                row=row + 1,
+                column=3,
+                sticky="w",
+                padx=(0, 40),
+                pady=3
+            )
 
-                self.patient_labels[key] = value
+            self.patient_labels[key] = value
+        self.edit_button = ctk.CTkButton(
+            self,
+            text = "Edit Patient",
+            command = self.edit_callback
+        )
+        self.edit_button.grid(
+            row = 20,
+            column = 0,
+            columnspan = 4,
+            pady = 5
+        )
 
         
 

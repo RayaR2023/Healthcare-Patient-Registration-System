@@ -12,20 +12,20 @@ from src.models.document import Document
 def row_to_patient(row):
 
     return Patient(
-        row.PatientID,
-        row.FirstName,
-        row.LastName,
-        row.DateOfBirth,
-        row.Sex,
-        row.Phone,
-        row.Email,
-        row.Address,
-        row.HealthCardNumber,
-        row.EmergencyContact,
-        row.EmergencyPhone,
-        row.FamilyDoctor,
-        row.BloodType,
-        row.Allergies
+        first_name=row.FirstName,
+        last_name=row.LastName,
+        date_of_birth=row.DateOfBirth,
+        sex=row.Sex,
+        phone=row.Phone,
+        email=row.Email,
+        address=row.Address,
+        health_card_number=row.HealthCardNumber,
+        emergency_contact=row.EmergencyContact,
+        emergency_phone=row.EmergencyPhone,
+        family_doctor=row.FamilyDoctor,
+        blood_type=row.BloodType,
+        allergies=row.Allergies,
+        patient_id=row.PatientID
     )
 
 
@@ -140,6 +140,7 @@ def add_patient(patient_data):
             BloodType,
             Allergies    
             )
+            OUTPUT INSERTED.PatientID
 
             VALUES
             (?,
@@ -249,34 +250,33 @@ def get_patient_lab_results(patient_id):
     cursor.execute(
         """
         SELECT
-        LabResultID,
-        PatientID,
-        TestName,
-        TestDate,
-        Result,
-        Notes
+            ResultID,
+            PatientID,
+            TestName,
+            TestDate,
+            Result,
+            Notes
         FROM LabResults
         WHERE PatientID = ?
-        ORDER BY TestDate DESC
         """,
         patient_id
     )
-
+    rows = cursor.fetchall()
     results = []
 
-    for row in cursor.fetchall():
-        results.append(
-            LabResult(
-                row.LabResultID,
-                row.PatientID,
-                row.TestName,
-                row.TestDate,
-                row.Result,
-                row.Notes
-            )
+    for row in rows:
+        result = LabResult(
+            row.ResultID,
+            row.PatientID,
+            row.TestName,
+            row.TestDate,
+            row.Result,
+            row.Notes
         )
-
+        results.append(result)
+    cursor.close()
     connection.close()
+   
     return results
 
 
@@ -316,3 +316,207 @@ def get_patient_documents(patient_id):
         )
     connection.close()
     return documents
+
+
+def get_dashboard_statistics():
+
+    connection = get_connection()
+    cursor = connection.cursor()
+    statistics = {}
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM Patients"
+    )
+    statistics["patients"] = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM Appointments"
+    )
+    statistics["appointments"] = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM Referrals"
+    )
+    statistics["referrals"] = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM LabResults"
+    )
+    statistics["lab_results"] = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM Documents"
+    )
+    statistics["documents"] = cursor.fetchone()[0]
+
+    connection.close()
+
+    return statistics
+
+
+def add_patient(patient):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = """
+    INSERT INTO Patients
+    (
+      FirstName,
+      LastName,
+      DateOfBirth,
+      Sex,
+      Phone,
+      Email,
+      Address,
+      HealthCardNumber,
+      EmergencyContact,
+      EmergencyPhone,
+      FamilyDoctor,
+      BloodType,
+      Allergies
+    )
+    OUTPUT INSERTED.PatientID
+    VALUES
+    (
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?
+    
+    )
+    """
+
+    cursor.execute(
+        query,
+        (
+            patient.first_name,
+            patient.last_name,
+            patient.date_of_birth,
+            patient.sex,
+            patient.phone,
+            patient.email,
+            patient.address,
+            patient.health_card_number,
+            patient.emergency_contact,
+            patient.emergency_phone,
+            patient.family_doctor,
+            patient.blood_type,
+            patient.allergies   
+        )
+    ) 
+    new_id = cursor.fetchone()[0]
+    connection.commit()
+    patient.patient_id = int(new_id)
+    cursor.close()
+    connection.close()
+    return patient
+
+def update_patient(patient):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = """
+    
+    UPDATE Patients
+    SET 
+        FirstName = ?,
+        LastName = ?,
+        DateOfBirth =?,
+        Sex = ?,
+        Phone = ?,
+        Email = ?,
+        Address = ?,
+        HealthCardNumber = ?,
+        EmergencyContact = ?,
+        EmergencyPhone = ?,
+        FamilyDoctor = ?,
+        BloodType = ?,
+        Allergies = ?
+    WHERE PatientID = ?
+    """
+    cursor.execute(
+        query,
+        (
+            patient.first_name,
+            patient.last_name,
+            patient.date_of_birth,
+            patient.sex,
+            patient.phone,
+            patient.email,
+            patient.address,
+            patient.health_card_number,
+            patient.emergency_contact,
+            patient.emergency_phone,
+            patient.family_doctor,
+            patient.blood_type,
+            patient.allergies,
+            patient.patient_id  
+        )
+    )
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+def delete_patient(patient_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        """
+        DELETE FROM Appointments
+        WHERE PatientID = ?
+
+        """,
+        patient_id
+    )
+
+    cursor.execute(
+            """
+            DELETE FROM Referrals
+            WHERE PatientID = ?
+    
+            """,
+            patient_id
+    )
+
+    cursor.execute(
+            """
+            DELETE FROM LabResults
+            WHERE PatientID = ?
+    
+            """,
+            patient_id
+    )
+
+    cursor.execute(
+            """
+            DELETE FROM Documents
+            WHERE PatientID = ?
+    
+            """,
+            patient_id
+    )
+
+    cursor.execute(
+            """
+            DELETE FROM Patients
+            WHERE PatientID = ?
+    
+            """,
+            patient_id
+    )
+    
+    connection.commit()
+    cursor.close()
+    connection.close()

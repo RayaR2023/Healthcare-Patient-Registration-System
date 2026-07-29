@@ -20,28 +20,18 @@ class Sidebar(ctk.CTkFrame):
             pady = (25,35)
         )
 
-        buttons = [
-            "Dashboard",
+        pages = {
+            "Dashboard": "dashboard",
+            "Patients": "patients",
+            "Register Patient": "register_patient"
+        }
 
-            "Patients",
-
-            "Appointments",
-
-            "Referrals",
-
-            "Lab Results",
-
-            "Documents",
-
-            "Reports"
-        ]
-
-        for name in buttons:
+        for text,page in pages.items():
             button = ctk.CTkButton(
                 self,
-                text = name,
-                height = 45,
-                corner_radius=8
+                text = text,
+                command = lambda p = page:
+                    parent.show_page(p)
             )
             button.pack(
                 fill = "x",

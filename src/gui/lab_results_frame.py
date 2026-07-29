@@ -19,44 +19,53 @@ class LabResultsFrame(ctk.CTkFrame):
         )
         self.table = ctk.CTkTextbox(
             self,
-            width = 900,
-            height = 220
+            height = 250,
+            font = ("Consolas", 13)
         )
 
         self.table.pack(
             fill = "both",
             expand = True,
             padx = 20,
-            pady = (0,20)
+            pady = 20
         )
 
     def display_lab_results(self, results):
+        self.table.configure(
+            state = "normal"
+        )
 
         self.table.delete(
-            "1.0",
+            "1.0", 
             "end"
         )
-
-        header = (
-            f"{'Date':<15}"
-            f"{'Test':<35}"
-            f"{'Result':<15}"
-            f"Notes\n"
-        )
-        self.table.insert(
-            "end",
-            header
-        )
-        self.table.insert(
-            "end",
-            "-" *110 + "\n"
-        )
-
-        for result in results:
+        if not results:
             self.table.insert(
                 "end",
-                f"{str(result.test_date):<15}"
-                f"{result.test_name:<35}"
-                f"{result.result:<15}"
-                f"{result.notes}\n"
+                "No lab results found for this patient."
             )
+        else:
+            self.table.insert(
+                "end",
+                "ID     Date          Test Name                     Result"      
+            )
+            self.table.insert(
+                "end",
+                "-"*100 + "\n"
+            )
+
+            for lab in results:
+
+                self.table.insert(
+                    "end",
+                    f"{lab.result_id:<7}"
+                    f"{str(lab.test_date):<14}"
+                    f"{lab.test_name:<30}"
+                    f"{lab.result:<20}"
+                    f"{lab.notes or ''}\n"
+                )
+
+
+        self.table.configure(
+            state="disabled"
+        )
