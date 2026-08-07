@@ -1,5 +1,4 @@
-class Document: 
-
+class Document:
 
     def __init__(
         self,
@@ -7,12 +6,13 @@ class Document:
         patient_id,
         document_type,
         file_name,
-        uploaded_by,
-        upload_date     
+        upload_date,
+        uploaded_by
     ):
+
         self.document_id = document_id
         self.patient_id = patient_id
         self.document_type = document_type
         self.file_name = file_name
-        self.uploaded_by = uploaded_by
         self.upload_date = upload_date
+        self.uploaded_by = uploaded_by

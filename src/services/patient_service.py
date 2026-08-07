@@ -9,6 +9,9 @@ from src.models.patient import Patient
 from src.models.referral import Referral
 from src.models.lab_result import LabResult
 from src.models.document import Document
+from src.models.appointment import Appointment
+from src.models.referral import Referral
+
 def row_to_patient(row):
 
     return Patient(
@@ -186,6 +189,8 @@ def get_patient_appointments(patient_id):
     cursor.execute("""
     
         SELECT
+            AppointmentID,
+            PatientID,
             AppointmentDate, 
             AppointmentTime,
             AppointmentReason,
@@ -193,33 +198,53 @@ def get_patient_appointments(patient_id):
             RoomNumber
         FROM Appointments
         WHERE PatientID = ?
-        ORDER BY AppointmentDate
+        ORDER BY AppointmentDate DESC, AppointmentTime DESC
     
     """, patient_id)
 
-    appointments = cursor.fetchall()
-
+    rows = cursor.fetchall()
+    appointments = []
+    for row in rows:
+        appointment = Appointment(
+            row.AppointmentID,
+            row.PatientID,
+            row.AppointmentDate,
+            row.AppointmentTime,
+            row.AppointmentReason,
+            row.AppointmentStatus,
+            row.RoomNumber
+        )
+        appointments.append(appointment)
     connection.close()
     return appointments
+   
 
 
 def get_patient_referrals(patient_id):
+
     connection = get_connection()
     cursor = connection.cursor()
 
     cursor.execute(
         """
         SELECT
-            ReferralID,
-            PatientID,
-            ReferringClinic,
-            ReferralDate,
-            DepartmentID,
-            Status,
-            Notes
-        FROM Referrals
-        WHERE PatientID = ?
-        ORDER BY ReferralDate DESC
+            r.ReferralID,
+            r.PatientID,
+            r.ReferringClinic,
+            r.ReferralDate,
+            r.DepartmentID,
+            d.DepartmentName,
+            r.Status,
+            r.Notes
+
+        FROM Referrals r
+
+        INNER JOIN Departments d
+            ON r.DepartmentID = d.DepartmentID
+
+        WHERE r.PatientID = ?
+
+        ORDER BY r.ReferralDate DESC
         """,
         patient_id
     )
@@ -227,18 +252,31 @@ def get_patient_referrals(patient_id):
     referrals = []
 
     for row in cursor.fetchall():
-        referrals.append(
-            Referral(
-                row.ReferralID,
-                row.PatientID,
-                row.ReferringClinic,
-                row.ReferralDate,
-                row.DepartmentID,
-                row.Status,
-                row.Notes
-            )
+
+        referral = Referral(
+            row.ReferralID,
+            row.PatientID,
+            row.ReferringClinic,
+            row.ReferralDate,
+            row.DepartmentID,
+            row.Status,
+            row.Notes
         )
+
+        # add department name to the object
+        referral.department_name = row.DepartmentName
+
+        print(
+            row.DepartmentID,
+            row.DepartmentName
+        )
+        print(
+            referral.department_name
+        )
+        referrals.append(referral)
+
     connection.close()
+
     return referrals
 
 
@@ -258,6 +296,7 @@ def get_patient_lab_results(patient_id):
             Notes
         FROM LabResults
         WHERE PatientID = ?
+        ORDER BY TestDate DESC
         """,
         patient_id
     )
@@ -310,8 +349,8 @@ def get_patient_documents(patient_id):
                 row.PatientID,
                 row.DocumentType,
                 row.FileName,
-                row.UploadedBy,
-                row.UploadDate
+                row.UploadDate,
+                row.UploadedBy
             )
         )
     connection.close()
@@ -322,31 +361,33 @@ def get_dashboard_statistics():
 
     connection = get_connection()
     cursor = connection.cursor()
+
     statistics = {}
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM Patients"
-    )
+    cursor.execute("SELECT COUNT(*) FROM Patients")
     statistics["patients"] = cursor.fetchone()[0]
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM Appointments"
-    )
+    cursor.execute("SELECT COUNT(*) FROM Appointments")
     statistics["appointments"] = cursor.fetchone()[0]
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM Referrals"
-    )
-    statistics["referrals"] = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM Referrals
+        WHERE Status = 'Pending'
+    """)
+    statistics["pending_referrals"] = cursor.fetchone()[0]
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM LabResults"
-    )
-    statistics["lab_results"] = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM LabResults
+        WHERE Result='Abnormal'
+    """)
+    statistics["abnormal_labs"] = cursor.fetchone()[0]
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM Documents"
-    )
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM Documents
+    """)
     statistics["documents"] = cursor.fetchone()[0]
 
     connection.close()
@@ -470,53 +511,502 @@ def update_patient(patient):
 
 
 def delete_patient(patient_id):
+
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute(
-        """
-        DELETE FROM Appointments
-        WHERE PatientID = ?
 
-        """,
-        patient_id
-    )
+    try:
 
-    cursor.execute(
+        # Delete appointments first
+        cursor.execute(
+            """
+            DELETE FROM Appointments
+            WHERE PatientID = ?
+            """,
+            (
+                patient_id,
+            )
+        )
+
+
+        # Delete referrals
+        cursor.execute(
             """
             DELETE FROM Referrals
             WHERE PatientID = ?
-    
             """,
-            patient_id
-    )
+            (
+                patient_id,
+            )
+        )
 
-    cursor.execute(
+
+        # Delete lab results
+        cursor.execute(
             """
             DELETE FROM LabResults
             WHERE PatientID = ?
-    
             """,
-            patient_id
-    )
+            (
+                patient_id,
+            )
+        )
 
-    cursor.execute(
+
+        # Delete documents
+        cursor.execute(
             """
             DELETE FROM Documents
             WHERE PatientID = ?
-    
             """,
-            patient_id
-    )
+            (
+                patient_id,
+            )
+        )
 
-    cursor.execute(
+
+        # Delete patient last
+        cursor.execute(
             """
             DELETE FROM Patients
             WHERE PatientID = ?
-    
             """,
-            patient_id
+            (
+                patient_id,
+            )
+        )
+
+
+        connection.commit()
+
+
+    except Exception as e:
+
+        connection.rollback()
+
+        raise e
+
+
+    finally:
+
+        cursor.close()
+
+        connection.close()
+
+def add_appointment(
+        patient_id,
+        appointment_date,
+        appointment_time,
+        reason,
+        status,
+        room
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO Appointments
+        (
+            PatientID,
+            AppointmentDate,
+            AppointmentTime,
+            AppointmentReason,
+            AppointmentStatus,
+            RoomNumber
+        )
+        VALUES(?,?,?,?,?,?)
+
+        """,
+        patient_id,
+        appointment_date,
+        appointment_time,
+        reason,
+        status,
+        room
     )
-    
+
     connection.commit()
-    cursor.close()
     connection.close()
+
+def delete_appointment(appointment_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM Appointments
+        WHERE AppointmentID = ?
+        """,
+        appointment_id
+    )
+    connection.commit()
+    connection.close()
+
+def update_appointment(appointment):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE Appointments
+
+        SET
+
+            AppointmentDate=?,
+            AppointmentTime=?,
+            AppointmentReason=?,
+            AppointmentStatus=?,
+            RoomNumber=?
+
+        WHERE AppointmentID=?
+        """,
+
+        appointment.appointment_date,
+        appointment.appointment_time,
+        appointment.appointment_reason,
+        appointment.appointment_status,
+        appointment.room_number,
+        appointment.appointment_id
+    )
+
+    conn.commit()
+
+    conn.close()
+
+
+def add_referral(
+        patient_id,
+        clinic,
+        referral_date,
+        department_id,
+        status,
+        notes
+): 
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO Referrals
+        (
+            PatientID,
+            ReferringClinic,
+            ReferralDate,
+            DepartmentID,
+            Status,
+            Notes
+        )
+        VALUES(?,?,?,?,?,?)
+        """,
+        patient_id,
+        clinic,
+        referral_date,
+        department_id,
+        status,
+        notes
+    )
+
+    conn.commit()
+    conn.close()
+
+def delete_referral(referral_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM Referrals
+        WHERE ReferralID = ?
+        """,
+        referral_id
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def update_referral(referral):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        UPDATE Referrals
+        SET
+            ReferringClinic = ?,
+            ReferralDate = ?,
+            DepartmentID = ?,
+            Status = ?,
+            Notes = ?
+        WHERE ReferralID = ?
+        """,
+        referral.referring_clinic,
+        referral.referral_date,
+        referral.department_id,
+        referral.status,
+        referral.notes,
+        referral.referral_id
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def get_all_departments():
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            DepartmentID,
+            DepartmentName
+        FROM Departments
+        ORDER BY DepartmentName
+        """
+    )
+
+    departments = cursor.fetchall()
+
+    connection.close()
+
+    return departments
+
+
+def add_lab_result(
+        patient_id,
+        test_name,
+        test_date,
+        result,
+        notes
+):
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+
+    cursor.execute(
+        """
+        INSERT INTO LabResults
+        (
+            PatientID,
+            TestName,
+            TestDate,
+            Result,
+            Notes
+        )
+
+        VALUES
+        (
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+
+        """,
+
+        patient_id,
+        test_name,
+        test_date,
+        result,
+        notes
+    )
+
+
+    connection.commit()
+
+    cursor.close()
+
+    connection.close()
+
+
+def update_lab_result(lab_result):
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+
+    cursor.execute(
+        """
+        UPDATE LabResults
+
+        SET
+
+            TestName=?,
+            TestDate=?,
+            Result=?,
+            Notes=?
+
+        WHERE ResultID=?
+
+        """,
+
+        lab_result.test_name,
+        lab_result.test_date,
+        lab_result.result,
+        lab_result.notes,
+        lab_result.result_id
+    )
+
+
+    connection.commit()
+
+    cursor.close()
+
+    connection.close()
+
+
+def delete_lab_result(result_id):
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+
+    cursor.execute(
+        """
+        DELETE FROM LabResults
+
+        WHERE ResultID = ?
+
+        """,
+        result_id
+    )
+
+
+    connection.commit()
+
+    cursor.close()
+
+    connection.close()
+
+def add_document(
+        patient_id,
+        document_type,
+        file_name,
+        upload_date,
+        uploaded_by
+):
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+
+    cursor.execute(
+        """
+        INSERT INTO Documents
+        (
+            PatientID,
+            DocumentType,
+            FileName,
+            UploadDate,
+            UploadedBy
+        )
+
+        VALUES
+        (
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+
+        """,
+
+        patient_id,
+        document_type,
+        file_name,
+        upload_date,
+        uploaded_by
+    )
+
+
+    connection.commit()
+
+    cursor.close()
+
+    connection.close()
+
+def update_document(document):
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+
+    cursor.execute(
+        """
+        UPDATE Documents
+
+        SET
+            DocumentType = ?,
+            FileName = ?,
+            UploadDate = ?,
+            UploadedBy = ?
+
+        WHERE DocumentID = ?
+
+        """,
+        (
+            document.document_type,
+            document.file_name,
+            document.upload_date,
+            document.uploaded_by,
+            document.document_id
+        )
+    )
+
+
+    connection.commit()
+
+    cursor.close()
+
+    connection.close()
+
+def delete_document(document_id):
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+
+    cursor.execute(
+        """
+        DELETE FROM Documents
+        WHERE DocumentID = ?
+        """,
+        document_id
+    )
+
+
+    connection.commit()
+
+    cursor.close()
+
+    connection.close()
+    
+def health_card_exists(number):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT COUNT(*)
+        FROM Patients
+        WHERE HealthCardNumber = ?
+        """,
+        number
+    )
+
+    result = cursor.fetchone()[0]
+
+    connection.close()
+
+    return result > 0

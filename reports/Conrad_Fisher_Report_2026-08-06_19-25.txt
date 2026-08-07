@@ -1,0 +1,12 @@
+HEALTHCARE PATIENT REPORT
+==========================
+
+Patient ID: 1004
+Name: Conrad Fisher
+DOB: 2001-09-11
+Sex: Male
+Blood Type: A-
+Phone: 6135437888
+Email: connie@email.com
+Health Card: HC89988887
+Family Doctor: Dr. Derek Shepherd

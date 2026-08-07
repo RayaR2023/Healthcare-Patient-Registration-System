@@ -1,14 +1,15 @@
 class Referral:
 
     def __init__(
-            self,
-            referral_id,
-            patient_id,
-            referring_clinic,
-            referral_date,
-            department_id,
-            status,
-            notes
+        self,
+        referral_id,
+        patient_id,
+        referring_clinic,
+        referral_date,
+        department_id,
+        status,
+        notes,
+        department_name=""
     ):
 
         self.referral_id = referral_id
@@ -18,3 +19,4 @@ class Referral:
         self.department_id = department_id
         self.status = status
         self.notes = notes
+        self.department_name = department_name

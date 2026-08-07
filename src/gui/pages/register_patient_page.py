@@ -1,10 +1,13 @@
 import customtkinter as ctk
 from tkinter import messagebox
+from datetime import datetime
 
 from src.models.patient import Patient
-from src.services.patient_service import add_patient
+from src.services.patient_service import add_patient, health_card_exists
+
 
 class RegisterPatientPage(ctk.CTkFrame):
+
     def __init__(self, parent):
 
         super().__init__(parent)
@@ -23,6 +26,7 @@ class RegisterPatientPage(ctk.CTkFrame):
 
 
         fields = [
+
             "First Name",
             "Last Name",
             "Date of Birth",
@@ -36,20 +40,21 @@ class RegisterPatientPage(ctk.CTkFrame):
             "Family Doctor",
             "Blood Type",
             "Allergies"
+
         ]
 
 
         form = ctk.CTkScrollableFrame(
             self,
-            width = 600,
-            height = 450
-            )
+            width=600,
+            height=450
+        )
 
         form.pack(
             padx=40,
             pady=10,
-            fill = "both",
-            expand = True
+            fill="both",
+            expand=True
         )
 
 
@@ -84,6 +89,7 @@ class RegisterPatientPage(ctk.CTkFrame):
             self.fields[field] = entry
 
 
+
         button = ctk.CTkButton(
             self,
             text="Register Patient",
@@ -95,13 +101,69 @@ class RegisterPatientPage(ctk.CTkFrame):
         )
 
 
+
     def register(self):
+
+        # ==============================
+        # Validate required fields
+        # ==============================
+
+        required = [
+
+            "First Name",
+            "Last Name",
+            "Date of Birth",
+            "Health Card Number"
+
+        ]
+
+
+        for field in required:
+
+            if self.fields[field].get().strip() == "":
+
+                messagebox.showwarning(
+                    "Missing Information",
+                    f"{field} is required."
+                )
+
+                return
+
+
+
+        # ==============================
+        # Validate DOB
+        # ==============================
+
+        try:
+
+            dob = datetime.strptime(
+                self.fields["Date of Birth"].get(),
+                "%Y-%m-%d"
+            ).date()
+
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Invalid Date",
+                "Date of Birth must use format YYYY-MM-DD."
+            )
+
+            return
+
+
+
+        # ==============================
+        # Create Patient Object
+        # ==============================
+
 
         patient = Patient(
 
             self.fields["First Name"].get(),
             self.fields["Last Name"].get(),
-            self.fields["Date of Birth"].get(),
+            dob,
             self.fields["Sex"].get(),
             self.fields["Phone"].get(),
             self.fields["Email"].get(),
@@ -115,11 +177,58 @@ class RegisterPatientPage(ctk.CTkFrame):
 
         )
 
+        if health_card_exists(
+            self.fields["Health Card Number"].get()
+        ):
 
-        new_patient = add_patient(patient)
+            messagebox.showerror(
+                "Duplicate Health Card",
+                "A patient with this Health Card Number already exists."
+            )
+
+            return
+
+        try:
+
+            new_patient = add_patient(
+                patient
+            )
 
 
-        messagebox.showinfo(
-            "Success",
-            f"Patient registered successfully!\n Patient ID: {new_patient.patient_id}"
-        )
+            self.clear_form()
+
+
+            # update dashboard if available
+            if hasattr(
+                self.winfo_toplevel(),
+                "refresh_dashboard"
+            ):
+
+                self.winfo_toplevel().refresh_dashboard()
+
+
+
+            messagebox.showinfo(
+                "Success",
+                f"Patient registered successfully!\n\nPatient ID: {new_patient.patient_id}"
+            )
+
+
+
+        except Exception as e:
+
+            messagebox.showerror(
+                "Registration Failed",
+                str(e)
+            )
+
+
+
+    def clear_form(self):
+
+        for entry in self.fields.values():
+
+            entry.delete(
+                0,
+                "end"
+            )

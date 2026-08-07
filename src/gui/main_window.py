@@ -22,6 +22,9 @@ class MainWindow(ctk.CTk):
 
         self.title("Healthcare Patient Registration System")
         self.geometry("1400x850")
+        self.configure(
+            fg_color="#F8FAFC"
+        )
         self.resizable(True, True)
 
         # ----------------------------
@@ -129,6 +132,19 @@ class MainWindow(ctk.CTk):
 
     def search_patient(self, health_card):
 
+        health_card = health_card.strip()
+
+        if health_card == "":
+
+            self.pages["patients"].clear_information()
+
+            messagebox.showwarning(
+                "Missing Health Card",
+                "Please enter a Health Card Number."
+            )
+
+            return
+
         patient = search_by_health_card(
             health_card
         )
@@ -144,7 +160,16 @@ class MainWindow(ctk.CTk):
 
             return
 
+        self.current_patient = patient
+
         self.pages["patients"].display_patient(
             patient
         )
-        self.current_patient = patient
+
+    def refresh_dashboard(self):
+
+        stats = get_dashboard_statistics()
+
+        self.pages["dashboard"].load_statistics(
+            stats
+        )

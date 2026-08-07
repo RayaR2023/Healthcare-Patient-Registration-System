@@ -1,5 +1,8 @@
 import customtkinter as ctk
 
+from src.gui.styles import *
+
+
 class PatientSearchFrame(ctk.CTkFrame):
 
     def __init__(
@@ -7,52 +10,87 @@ class PatientSearchFrame(ctk.CTkFrame):
         parent,
         search_function
     ):
-    
-        super().__init__(
-            parent
-        )
+
+        super().__init__(parent)
+
         self.search_function = search_function
 
-        self.label = ctk.CTkLabel(
+        self.configure(
+            corner_radius=12
+        )
+
+        # --------------------------
+        # Title
+        # --------------------------
+
+        title = ctk.CTkLabel(
             self,
-            text = "Health Card Number"
+            text="Patient Search",
+            font=TITLE_FONT
         )
-        self.label.grid(
-            row = 0,
-            column = 0,
-            padx = 10,
-            pady = 10
+
+        title.pack(
+            pady=(15, 5)
         )
+
+        subtitle = ctk.CTkLabel(
+            self,
+            text="Search by Ontario Health Card Number",
+            font=BODY_FONT
+        )
+
+        subtitle.pack(
+            pady=(0, 15)
+        )
+
+        # --------------------------
+        # Search Row
+        # --------------------------
+
+        search_frame = ctk.CTkFrame(
+            self,
+            fg_color="transparent"
+        )
+
+        search_frame.pack(
+            pady=(0, 20)
+        )
+
         self.entry = ctk.CTkEntry(
-            self,
-            width = 250
+            search_frame,
+            width=350,
+            placeholder_text="Example: HC123456789"
         )
-        self.entry.grid(
-            row =0,
-            column = 1,
-            padx = 10,
-            pady =10
+
+        self.entry.pack(
+            side="left",
+            padx=(0, 15)
         )
+
+        self.entry.bind(
+            "<Return>",
+            lambda event: self.search()
+        )
+
         self.button = ctk.CTkButton(
-            self,
-            text = "Search",
-            command = self.search
+            search_frame,
+            text="Search",
+            width=BUTTON_WIDTH,
+            height=BUTTON_HEIGHT,
+            command=self.search
         )
-        self.button.grid(
-            row = 0,
-            column =2,
-            padx = 10,
-            pady = 10
+
+        self.button.pack(
+            side="left"
         )
 
     def search(self):
+
         health_card = self.entry.get().strip()
 
-        if health_card == "":
+        if not health_card:
             return
 
         self.search_function(
             health_card
         )
-
-    
